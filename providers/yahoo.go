@@ -62,3 +62,36 @@ func (y *Yahoo) Scoreboard(week int) string {
 	sb, _ := lg.GetScoreboard(week)
 	return formatYahooScoreboard(sb)
 }
+
+func formatYahooStandings(standings *yfantasy.Standings) string {
+	var out strings.Builder
+
+	header := fmt.Sprintln("Standings")
+	out.WriteString("```\n")
+	out.WriteString(header)
+	out.WriteString(strings.Repeat("-", len(header)))
+	out.WriteString("\n")
+
+	for _, tm := range standings.Teams.Team {
+		out.WriteString(
+			fmt.Sprintf(
+				"%d: %s (%d-%d-%d)\n",
+				tm.TeamStandings.Rank,
+				tm.Name,
+				tm.TeamStandings.OutcomeTotals.Wins,
+				tm.TeamStandings.OutcomeTotals.Losses,
+				tm.TeamStandings.OutcomeTotals.Ties))
+	}
+	out.WriteString("```")
+
+	return out.String()
+}
+
+// Standings returns a formatted string containing the Yahoo league's standings.
+func (y *Yahoo) Standings() string {
+	gm := y.yf.Game(y.gameKey)
+	lg, _ := gm.League(y.leagueKey)
+	standings, _ := lg.GetStandings()
+
+	return formatYahooStandings(standings)
+}

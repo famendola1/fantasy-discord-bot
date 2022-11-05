@@ -7,8 +7,8 @@ github.com/bwmarrin/discordgo v0.26.1 h1:AIrM+g3cl+iYBr4yBxCBp9tD9jR3K7upEjl0d89
 github.com/bwmarrin/discordgo v0.26.1/go.mod h1:NJZpH+1AfhIcyQsPeuBKsUtYrRnjkyu0kIVMCHkZtRY=
 github.com/famendola1/yauth v0.1.2 h1:5ax+8VIqOiJptPYq7PjEhaahtwlpbqzUmTNelnV0BrE=
 github.com/famendola1/yauth v0.1.2/go.mod h1:Uv3W9wmzcvTv0cSc68cGe5ZLuX9N5BIYmTYSF4gEduE=
-github.com/famendola1/yfantasy v0.0.24 h1:55u5SqvFGGU2ouQajvya3EbD77qhk5+vrqq6zKUfRlM=
-github.com/famendola1/yfantasy v0.0.24/go.mod h1:eBOHuPrHvxrLqKmRhlMIKY3xPYohL4LE/OedUDqZfd4=
+github.com/famendola1/yfantasy v0.0.26 h1:1DCvGl7gxe+vpxqEcaaihwPNK81cwGzD3YKmazPcjF0=
+github.com/famendola1/yfantasy v0.0.26/go.mod h1:eBOHuPrHvxrLqKmRhlMIKY3xPYohL4LE/OedUDqZfd4=
 github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e h1:1r7pUrabqp18hOBcwBwiTsbnFeTZHV9eER/QT5JVZxY=
 github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=

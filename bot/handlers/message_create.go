@@ -16,5 +16,9 @@ func CreateMessageCreateHandler(p providers.MessageCreateProvider) func(s *disco
 		if m.Content == "!scoreboard" {
 			s.ChannelMessageSend(m.ChannelID, p.Scoreboard(-1))
 		}
+
+		if m.Content == "!standings" {
+			s.ChannelMessageSend(m.ChannelID, p.Standings())
+		}
 	}
 }

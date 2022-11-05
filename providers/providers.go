@@ -4,4 +4,5 @@ package providers
 // MessageCreate Discord event.
 type MessageCreateProvider interface {
 	Scoreboard(week int) string
+	Standings() string
 }
