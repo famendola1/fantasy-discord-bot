@@ -10,17 +10,17 @@ import (
 
 // Yahoo is a provider for Yahoo Fantasy Sports.
 type Yahoo struct {
-	yf        *yfantasy.YFantasy
-	gameKey   string
-	leagueKey string
+	yf       *yfantasy.YFantasy
+	gameKey  string
+	leagueID int
 }
 
 // NewYahooProvider returns a new Yahoo provider
-func NewYahooProvider(auth *yauth.YAuth, gameKey, leagueKey string) *Yahoo {
+func NewYahooProvider(auth *yauth.YAuth, gameKey string, leagueID int) *Yahoo {
 	return &Yahoo{
-		yf:        yfantasy.New(auth.Client()),
-		gameKey:   gameKey,
-		leagueKey: leagueKey,
+		yf:       yfantasy.New(auth.Client()),
+		gameKey:  gameKey,
+		leagueID: leagueID,
 	}
 }
 
@@ -40,8 +40,8 @@ func formatYahooScoreboard(matchups *yfantasy.Matchups) string {
 			score[s.WinnerTeamKey]++
 		}
 
-		out.WriteString(fmt.Sprintf("%-30s (%d)\n", m.Teams.Team[0].Name, score[m.Teams.Team[0].TeamKey]))
-		out.WriteString(fmt.Sprintf("%-30s (%d)\n", m.Teams.Team[1].Name, score[m.Teams.Team[1].TeamKey]))
+		out.WriteString(fmt.Sprintf("%s (%d)\n", m.Teams.Team[0].Name, score[m.Teams.Team[0].TeamKey]))
+		out.WriteString(fmt.Sprintf("%s (%d)\n", m.Teams.Team[1].Name, score[m.Teams.Team[1].TeamKey]))
 		out.WriteString("\n")
 	}
 	out.WriteString("```")
@@ -52,10 +52,9 @@ func formatYahooScoreboard(matchups *yfantasy.Matchups) string {
 // Scoreboard returns a formatted string of all the Yahoo matchups for the given
 // week. If week is -1, then the current week is used.
 func (y *Yahoo) Scoreboard(week int) string {
-	gm := y.yf.Game(y.gameKey)
-	lg, _ := gm.League(y.leagueKey)
+	lg, _ := y.yf.League(y.gameKey, y.leagueID)
 
-	if week == -1 {
+	if week == 0 {
 		week = lg.CurrentWeek
 	}
 
@@ -89,9 +88,49 @@ func formatYahooStandings(standings *yfantasy.Standings) string {
 
 // Standings returns a formatted string containing the Yahoo league's standings.
 func (y *Yahoo) Standings() string {
-	gm := y.yf.Game(y.gameKey)
-	lg, _ := gm.League(y.leagueKey)
+	lg, _ := y.yf.League(y.gameKey, y.leagueID)
 	standings, _ := lg.GetStandings()
-
 	return formatYahooStandings(standings)
+}
+
+func formatYahooRoster(teamName string, roster *yfantasy.Roster) string {
+	var out strings.Builder
+
+	out.WriteString("```\n")
+	out.WriteString(teamName)
+	out.WriteString("\n")
+	out.WriteString(strings.Repeat("-", len(teamName)))
+	out.WriteString("\n")
+
+	possiblePos := []string{"PG", "SG", "G", "SF", "PF", "F", "C", "UTIL", "BN"}
+	ros := make(map[string][]string)
+	for _, pos := range possiblePos {
+		ros[pos] = []string{}
+	}
+
+	for _, player := range roster.Players.Player {
+		ros[player.SelectedPosition.Position] = append(ros[player.SelectedPosition.Position], player.Name.Full)
+	}
+
+	for _, pos := range possiblePos {
+		for _, name := range ros[pos] {
+			out.WriteString(fmt.Sprintf("%s: %s\n", pos, name))
+		}
+	}
+
+	out.WriteString("```")
+
+	return out.String()
+}
+
+// Roster returns a formatted string containg the roster of a team.
+func (y *Yahoo) Roster(teamName string) string {
+	lg, _ := y.yf.League(y.gameKey, y.leagueID)
+	ros, _ := lg.FindTeamRosterByName(teamName)
+	return formatYahooRoster(teamName, ros)
+}
+
+// Stats returns a formatted string containing the stats for a player.
+func (y *Yahoo) Stats(playerName string) string {
+	return ""
 }

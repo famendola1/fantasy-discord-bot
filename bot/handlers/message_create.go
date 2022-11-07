@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/famendola1/fantasy-discord-bot/providers"
 )
@@ -13,12 +16,22 @@ func CreateMessageCreateHandler(p providers.MessageCreateProvider) func(s *disco
 			return
 		}
 
-		if m.Content == "!scoreboard" {
-			s.ChannelMessageSend(m.ChannelID, p.Scoreboard(-1))
+		if strings.HasPrefix(m.Content, "!scoreboard") {
+			pieces := strings.Fields(m.Content)
+			week := 0
+			if len(pieces) > 1 {
+				week, _ = strconv.Atoi(pieces[1])
+			}
+			s.ChannelMessageSend(m.ChannelID, p.Scoreboard(week))
 		}
 
 		if m.Content == "!standings" {
 			s.ChannelMessageSend(m.ChannelID, p.Standings())
+		}
+
+		if strings.HasPrefix(m.Content, "!roster ") {
+			teamName := strings.TrimPrefix(m.Content, "!roster ")
+			s.ChannelMessageSend(m.ChannelID, p.Roster(teamName))
 		}
 	}
 }

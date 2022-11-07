@@ -14,9 +14,9 @@ import (
 )
 
 var (
-	authFile  = flag.String("auth_file", "", "Path to the file containing a serialized YAuth object.")
-	game      = flag.String("game", "", "The Yahoo game key of the sport of the fantasy league.")
-	leagueKey = flag.String("league", "", "The key of the Yahoo fantasy league.")
+	authFile = flag.String("auth_file", "", "Path to the file containing a serialized YAuth object.")
+	game     = flag.String("game", "", "The Yahoo game key of the sport of the fantasy league.")
+	leagueID = flag.Int("league", 0, "The ID of the Yahoo fantasy league.")
 )
 
 func main() {
@@ -32,7 +32,7 @@ func main() {
 		return
 	}
 
-	if *leagueKey == "" {
+	if *leagueID == 0 {
 		fmt.Println("No league provided.")
 		return
 	}
@@ -45,7 +45,7 @@ func main() {
 	}
 
 	auth, _ := yauth.CreateYAuthFromJSON(*authFile)
-	dg.AddHandler(handlers.CreateMessageCreateHandler(providers.NewYahooProvider(auth, *game, *leagueKey)))
+	dg.AddHandler(handlers.CreateMessageCreateHandler(providers.NewYahooProvider(auth, *game, *leagueID)))
 
 	dg.Identify.Intents = discordgo.IntentsGuildMessages
 
