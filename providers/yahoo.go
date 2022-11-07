@@ -102,7 +102,7 @@ func formatYahooRoster(teamName string, roster *yfantasy.Roster) string {
 	out.WriteString(strings.Repeat("-", len(teamName)))
 	out.WriteString("\n")
 
-	possiblePos := []string{"PG", "SG", "G", "SF", "PF", "F", "C", "UTIL", "BN"}
+	possiblePos := []string{"PG", "SG", "G", "SF", "PF", "F", "C", "UTIL", "BN", "IL", "IL+"}
 	ros := make(map[string][]string)
 	for _, pos := range possiblePos {
 		ros[pos] = []string{}
