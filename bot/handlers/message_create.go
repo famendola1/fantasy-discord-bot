@@ -33,5 +33,10 @@ func CreateMessageCreateHandler(p providers.MessageCreateProvider) func(s *disco
 			teamName := strings.TrimPrefix(m.Content, "!roster ")
 			s.ChannelMessageSend(m.ChannelID, p.Roster(teamName))
 		}
+
+		if strings.HasPrefix(m.Content, "!stats ") {
+			name := strings.TrimPrefix(m.Content, "!stats ")
+			s.ChannelMessageSend(m.ChannelID, p.PlayerStats(name))
+		}
 	}
 }

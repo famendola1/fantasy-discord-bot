@@ -6,5 +6,5 @@ type MessageCreateProvider interface {
 	Scoreboard(week int) string
 	Standings() string
 	Roster(teamName string) string
-	Stats(playerName string) string
+	PlayerStats(playerName string) string
 }

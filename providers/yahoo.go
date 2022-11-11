@@ -6,28 +6,45 @@ import (
 
 	"github.com/famendola1/yauth"
 	"github.com/famendola1/yfantasy"
+	"github.com/famendola1/yfantasy/schema"
+)
+
+var (
+	statIDToName = map[int]string{
+		9004003: "FG",
+		5:       "FG%",
+		9007006: "FT",
+		8:       "FT%",
+		10:      "3PM",
+		12:      "PTS",
+		15:      "REB",
+		16:      "AST",
+		17:      "STL",
+		18:      "BLK",
+		19:      "TOV",
+	}
 )
 
 // Yahoo is a provider for Yahoo Fantasy Sports.
 type Yahoo struct {
-	yf       *yfantasy.YFantasy
-	gameKey  string
-	leagueID int
+	yf        *yfantasy.YFantasy
+	gameKey   string
+	leagueKey string
 }
 
 // NewYahooProvider returns a new Yahoo provider
 func NewYahooProvider(auth *yauth.YAuth, gameKey string, leagueID int) *Yahoo {
 	return &Yahoo{
-		yf:       yfantasy.New(auth.Client()),
-		gameKey:  gameKey,
-		leagueID: leagueID,
+		yf:        yfantasy.New(auth.Client()),
+		gameKey:   gameKey,
+		leagueKey: yfantasy.MakeLeagueKey(gameKey, leagueID),
 	}
 }
 
-func formatYahooScoreboard(matchups *yfantasy.Matchups) string {
+func formatYahooScoreboard(sb *schema.Scoreboard) string {
 	var out strings.Builder
 
-	header := fmt.Sprintf("Week %d Matchups", matchups.Matchup[0].Week)
+	header := fmt.Sprintf("Week %d Matchups", sb.Matchups.Matchup[0].Week)
 
 	score := make(map[string]int)
 	out.WriteString("```\n")
@@ -35,7 +52,7 @@ func formatYahooScoreboard(matchups *yfantasy.Matchups) string {
 	out.WriteString("\n")
 	out.WriteString(strings.Repeat("-", len(header)))
 	out.WriteString("\n")
-	for _, m := range matchups.Matchup {
+	for _, m := range sb.Matchups.Matchup {
 		for _, s := range m.StatWinners.StatWinner {
 			score[s.WinnerTeamKey]++
 		}
@@ -52,17 +69,16 @@ func formatYahooScoreboard(matchups *yfantasy.Matchups) string {
 // Scoreboard returns a formatted string of all the Yahoo matchups for the given
 // week. If week is -1, then the current week is used.
 func (y *Yahoo) Scoreboard(week int) string {
-	lg, _ := y.yf.League(y.gameKey, y.leagueID)
-
+	var sb *schema.Scoreboard
 	if week == 0 {
-		week = lg.CurrentWeek
+		sb, _ = y.yf.CurrentScoreboard(y.leagueKey)
 	}
 
-	sb, _ := lg.GetScoreboard(week)
+	sb, _ = y.yf.Scoreboard(y.leagueKey, week)
 	return formatYahooScoreboard(sb)
 }
 
-func formatYahooStandings(standings *yfantasy.Standings) string {
+func formatYahooStandings(standings *schema.Standings) string {
 	var out strings.Builder
 
 	header := fmt.Sprintln("Standings")
@@ -88,12 +104,11 @@ func formatYahooStandings(standings *yfantasy.Standings) string {
 
 // Standings returns a formatted string containing the Yahoo league's standings.
 func (y *Yahoo) Standings() string {
-	lg, _ := y.yf.League(y.gameKey, y.leagueID)
-	standings, _ := lg.GetStandings()
+	standings, _ := y.yf.Standings(y.leagueKey)
 	return formatYahooStandings(standings)
 }
 
-func formatYahooRoster(teamName string, roster *yfantasy.Roster) string {
+func formatYahooRoster(teamName string, roster *schema.Roster) string {
 	var out strings.Builder
 
 	out.WriteString("```\n")
@@ -125,12 +140,32 @@ func formatYahooRoster(teamName string, roster *yfantasy.Roster) string {
 
 // Roster returns a formatted string containg the roster of a team.
 func (y *Yahoo) Roster(teamName string) string {
-	lg, _ := y.yf.League(y.gameKey, y.leagueID)
-	ros, _ := lg.FindTeamRosterByName(teamName)
+	ros, _ := y.yf.TeamRoster(y.leagueKey, teamName)
 	return formatYahooRoster(teamName, ros)
 }
 
-// Stats returns a formatted string containing the stats for a player.
-func (y *Yahoo) Stats(playerName string) string {
-	return ""
+func formatPlayerStats(name string, pStats *schema.PlayerStats) string {
+	var out strings.Builder
+
+	header := name + " - Season Average"
+	out.WriteString("```\n")
+	out.WriteString(header)
+	out.WriteString("\n")
+	out.WriteString(strings.Repeat("-", len(header)))
+	out.WriteString("\n\n")
+
+	for _, s := range pStats.Stats.Stat {
+		out.WriteString(fmt.Sprintf("%-3s: %s", statIDToName[s.StatID], s.Value))
+		out.WriteString("\n")
+	}
+
+	out.WriteString("```")
+
+	return out.String()
+}
+
+// PlayerStats returns a formatted string containing the stats for a player.
+func (y *Yahoo) PlayerStats(playerName string) string {
+	stats, _ := y.yf.PlayerStats(y.leagueKey, playerName)
+	return formatPlayerStats(playerName, stats)
 }
