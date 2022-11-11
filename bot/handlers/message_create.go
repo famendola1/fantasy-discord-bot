@@ -38,5 +38,9 @@ func CreateMessageCreateHandler(p providers.MessageCreateProvider) func(s *disco
 			name := strings.TrimPrefix(m.Content, "!stats ")
 			s.ChannelMessageSend(m.ChannelID, p.PlayerStats(name))
 		}
+
+		if m.Content == "!help" {
+			s.ChannelMessageSendEmbed(m.ChannelID, p.Help())
+		}
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/bwmarrin/discordgo"
 	"github.com/famendola1/yauth"
 	"github.com/famendola1/yfantasy"
 	"github.com/famendola1/yfantasy/schema"
@@ -168,4 +169,28 @@ func formatPlayerStats(name string, pStats *schema.PlayerStats) string {
 func (y *Yahoo) PlayerStats(playerName string) string {
 	stats, _ := y.yf.PlayerStats(y.leagueKey, playerName)
 	return formatPlayerStats(playerName, stats)
+}
+
+// Help returns the help docs.
+func (y *Yahoo) Help() *discordgo.MessageEmbed {
+	embed := &discordgo.MessageEmbed{
+		Title:       "Yahoo Fantasy Sports Bot",
+		Description: "Discord Bot for Yahoo Fantasy Sports",
+	}
+
+	embed.Fields = append(embed.Fields,
+		&discordgo.MessageEmbedField{Name: "!help", Value: "Returns this message."})
+	embed.Fields = append(embed.Fields,
+		&discordgo.MessageEmbedField{
+			Name:  "!scoreboard <week>",
+			Value: "Returns the scoreboard of the given week. If no week is provided, returns the current scoreboard.",
+		})
+	embed.Fields = append(embed.Fields,
+		&discordgo.MessageEmbedField{Name: "!roster <team>", Value: "Returns the roster of the given team."})
+	embed.Fields = append(embed.Fields,
+		&discordgo.MessageEmbedField{
+			Name:  "!stats <player>",
+			Value: "Returns the stats of the requested player. The provided player's name must be at least 3 letters long.",
+		})
+	return embed
 }

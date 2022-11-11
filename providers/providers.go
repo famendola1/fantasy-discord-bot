@@ -1,5 +1,7 @@
 package providers
 
+import "github.com/bwmarrin/discordgo"
+
 // MessageCreateProvider is the interface for providers that are accessed on the
 // MessageCreate Discord event.
 type MessageCreateProvider interface {
@@ -7,4 +9,5 @@ type MessageCreateProvider interface {
 	Standings() string
 	Roster(teamName string) string
 	PlayerStats(playerName string) string
+	Help() *discordgo.MessageEmbed
 }
