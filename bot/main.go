@@ -1,8 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -14,38 +17,43 @@ import (
 )
 
 var (
-	authFile = flag.String("auth_file", "", "Path to the file containing a serialized YAuth object.")
-	game     = flag.String("game", "", "The Yahoo game key of the sport of the fantasy league.")
-	leagueID = flag.Int("league", 0, "The ID of the Yahoo fantasy league.")
+	cfg = flag.String("cfg", "", "Path to the config file containing")
 )
+
+type config struct {
+	Auth         yauth.YAuth `json:"auth"`
+	Game         string      `json:"game"`
+	LeagueID     int         `json:"league_id"`
+	DiscordToken string      `json:"discord_token"`
+}
 
 func main() {
 	flag.Parse()
 
-	if *authFile == "" {
-		fmt.Println("No auth file provided.")
+	if *cfg == "" {
+		fmt.Println("no config file specified.")
 		return
 	}
 
-	if *game == "" {
-		fmt.Println("No game provided.")
-		return
+	content, err := ioutil.ReadFile(*cfg)
+	if err != nil {
+		log.Fatal("Error when opening file: ", err)
 	}
 
-	if *leagueID == 0 {
-		fmt.Println("No league provided.")
-		return
+	var conf config
+	err = json.Unmarshal(content, &conf)
+	if err != nil {
+		log.Fatal("Error during Unmarshal(): ", err)
 	}
 
 	// // Create a new Discord session using the provided bot token.
-	dg, err := discordgo.New("Bot " + os.Getenv("DISCORD_BOT_TOKEN"))
+	dg, err := discordgo.New("Bot " + conf.DiscordToken)
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
 		return
 	}
 
-	auth, _ := yauth.CreateYAuthFromJSON(*authFile)
-	dg.AddHandler(handlers.CreateMessageCreateHandler(providers.NewYahooProvider(auth, *game, *leagueID)))
+	dg.AddHandler(handlers.CreateMessageCreateHandler(providers.NewYahooProvider(&conf.Auth, conf.Game, conf.LeagueID)))
 
 	dg.Identify.Intents = discordgo.IntentsGuildMessages
 

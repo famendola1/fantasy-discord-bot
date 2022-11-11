@@ -15,4 +15,4 @@
 go.work
 
 # Yahoo authorization file
-*auth.json
+*conf.json
