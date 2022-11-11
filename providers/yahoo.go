@@ -42,6 +42,14 @@ func NewYahooProvider(auth *yauth.YAuth, gameKey string, leagueID int) *Yahoo {
 	}
 }
 
+func formatError(err error) string {
+	var out strings.Builder
+	out.WriteString("```\n")
+	out.WriteString(fmt.Sprintf("Error: %s", err))
+	out.WriteString("```")
+	return out.String()
+}
+
 func formatYahooScoreboard(sb *schema.Scoreboard) string {
 	var out strings.Builder
 
@@ -71,11 +79,17 @@ func formatYahooScoreboard(sb *schema.Scoreboard) string {
 // week. If week is -1, then the current week is used.
 func (y *Yahoo) Scoreboard(week int) string {
 	var sb *schema.Scoreboard
+	var err error
+
 	if week == 0 {
-		sb, _ = y.yf.CurrentScoreboard(y.leagueKey)
+		sb, err = y.yf.CurrentScoreboard(y.leagueKey)
+	} else {
+		sb, err = y.yf.Scoreboard(y.leagueKey, week)
 	}
 
-	sb, _ = y.yf.Scoreboard(y.leagueKey, week)
+	if err != nil {
+		return formatError(err)
+	}
 	return formatYahooScoreboard(sb)
 }
 
@@ -91,7 +105,7 @@ func formatYahooStandings(standings *schema.Standings) string {
 	for _, tm := range standings.Teams.Team {
 		out.WriteString(
 			fmt.Sprintf(
-				"%d: %s (%d-%d-%d)\n",
+				"%2d: %s (%d-%d-%d)\n",
 				tm.TeamStandings.Rank,
 				tm.Name,
 				tm.TeamStandings.OutcomeTotals.Wins,
@@ -105,17 +119,20 @@ func formatYahooStandings(standings *schema.Standings) string {
 
 // Standings returns a formatted string containing the Yahoo league's standings.
 func (y *Yahoo) Standings() string {
-	standings, _ := y.yf.Standings(y.leagueKey)
+	standings, err := y.yf.Standings(y.leagueKey)
+	if err != nil {
+		return formatError(err)
+	}
 	return formatYahooStandings(standings)
 }
 
-func formatYahooRoster(teamName string, roster *schema.Roster) string {
+func formatYahooRoster(team *schema.Team) string {
 	var out strings.Builder
 
 	out.WriteString("```\n")
-	out.WriteString(teamName)
+	out.WriteString(team.Name)
 	out.WriteString("\n")
-	out.WriteString(strings.Repeat("-", len(teamName)))
+	out.WriteString(strings.Repeat("-", len(team.Name)))
 	out.WriteString("\n")
 
 	possiblePos := []string{"PG", "SG", "G", "SF", "PF", "F", "C", "UTIL", "BN", "IL", "IL+"}
@@ -124,7 +141,7 @@ func formatYahooRoster(teamName string, roster *schema.Roster) string {
 		ros[pos] = []string{}
 	}
 
-	for _, player := range roster.Players.Player {
+	for _, player := range team.Roster.Players.Player {
 		ros[player.SelectedPosition.Position] = append(ros[player.SelectedPosition.Position], player.Name.Full)
 	}
 
@@ -141,21 +158,24 @@ func formatYahooRoster(teamName string, roster *schema.Roster) string {
 
 // Roster returns a formatted string containg the roster of a team.
 func (y *Yahoo) Roster(teamName string) string {
-	ros, _ := y.yf.TeamRoster(y.leagueKey, teamName)
-	return formatYahooRoster(teamName, ros)
+	tm, err := y.yf.TeamRoster(y.leagueKey, teamName)
+	if err != nil {
+		return formatError(err)
+	}
+	return formatYahooRoster(tm)
 }
 
-func formatPlayerStats(name string, pStats *schema.PlayerStats) string {
+func formatPlayerStats(player *schema.Player) string {
 	var out strings.Builder
 
-	header := name + " - Season Average"
+	header := player.Name.Full + " - " + strings.Title(strings.Replace(player.PlayerStats.CoverageType, "_", " ", 1))
 	out.WriteString("```\n")
 	out.WriteString(header)
 	out.WriteString("\n")
 	out.WriteString(strings.Repeat("-", len(header)))
 	out.WriteString("\n\n")
 
-	for _, s := range pStats.Stats.Stat {
+	for _, s := range player.PlayerStats.Stats.Stat {
 		out.WriteString(fmt.Sprintf("%-3s: %s", statIDToName[s.StatID], s.Value))
 		out.WriteString("\n")
 	}
@@ -167,8 +187,11 @@ func formatPlayerStats(name string, pStats *schema.PlayerStats) string {
 
 // PlayerStats returns a formatted string containing the stats for a player.
 func (y *Yahoo) PlayerStats(playerName string) string {
-	stats, _ := y.yf.PlayerStats(y.leagueKey, playerName)
-	return formatPlayerStats(playerName, stats)
+	p, err := y.yf.PlayerStats(y.leagueKey, playerName)
+	if err != nil {
+		return formatError(err)
+	}
+	return formatPlayerStats(p)
 }
 
 // Help returns the help docs.
