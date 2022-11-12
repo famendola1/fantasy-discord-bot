@@ -53,3 +53,20 @@ docker build --tag bot
 ```
 
 You can deploy the Docker image using your preferred method.
+
+## Examples
+
+### Help
+![Fantasy sports bot help command](assets/bot_help.png)
+
+### League Standings
+![Fantasy sports bot standings command](assets/bot_standings.png)
+
+### League Scoreboard
+![Fantasy sports bot scoreboard command](assets/bot_scoreboard.png)
+
+### Team Roster
+![Fantasy sports bot roster command](assets/bot_roster.png)
+
+### Player Stats
+![Fantasy sports bot stats command](assets/bot_player_stats.png)
