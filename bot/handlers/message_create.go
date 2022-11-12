@@ -35,8 +35,12 @@ func CreateMessageCreateHandler(p providers.MessageCreateProvider) func(s *disco
 		}
 
 		if strings.HasPrefix(m.Content, "!stats ") {
-			name := strings.TrimPrefix(m.Content, "!stats ")
-			s.ChannelMessageSend(m.ChannelID, p.PlayerStats(name))
+			args := strings.TrimPrefix(m.Content, "!stats ")
+			splitArgs := strings.Split(args, " ")
+			if (len(splitArgs)) < 2 {
+				s.ChannelMessageSend(m.ChannelID, "Error: invald !stats usage. See !help for usage.")
+			}
+			s.ChannelMessageSend(m.ChannelID, p.PlayerStats(splitArgs[0], strings.Join(splitArgs[1:], " ")))
 		}
 
 		if m.Content == "!help" {

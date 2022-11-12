@@ -186,8 +186,23 @@ func formatPlayerStats(player *schema.Player) string {
 }
 
 // PlayerStats returns a formatted string containing the stats for a player.
-func (y *Yahoo) PlayerStats(playerName string) string {
-	p, err := y.yf.PlayerStats(y.leagueKey, playerName)
+func (y *Yahoo) PlayerStats(statsType, playerName string) string {
+	var statsTypeNum int
+	switch statsType {
+	case "season":
+		statsTypeNum = yfantasy.StatsTypeAverageSeason
+		break
+	case "week":
+		statsTypeNum = yfantasy.StatsTypeLastWeekAverage
+		break
+	case "month":
+		statsTypeNum = yfantasy.StatsTypeLastMonthAverage
+		break
+	default:
+		return formatError(fmt.Errorf("invald stats type (%q) requested", statsType))
+	}
+
+	p, err := y.yf.PlayerStats(y.leagueKey, playerName, statsTypeNum)
 	if err != nil {
 		return formatError(err)
 	}
@@ -212,8 +227,8 @@ func (y *Yahoo) Help() *discordgo.MessageEmbed {
 		&discordgo.MessageEmbedField{Name: "!roster <team>", Value: "Returns the roster of the given team."})
 	embed.Fields = append(embed.Fields,
 		&discordgo.MessageEmbedField{
-			Name:  "!stats <player>",
-			Value: "Returns the stats of the requested player. The provided player's name must be at least 3 letters long.",
+			Name:  "!stats <type> <player>",
+			Value: "Returns the stats of the requested player. The provided player's name must be at least 3 letters long. <type> must be one of season|week|month.",
 		})
 	return embed
 }

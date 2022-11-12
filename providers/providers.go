@@ -8,6 +8,6 @@ type MessageCreateProvider interface {
 	Scoreboard(week int) string
 	Standings() string
 	Roster(teamName string) string
-	PlayerStats(playerName string) string
+	PlayerStats(statsType, playerName string) string
 	Help() *discordgo.MessageEmbed
 }
