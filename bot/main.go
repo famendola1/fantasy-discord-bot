@@ -22,6 +22,7 @@ var (
 
 type config struct {
 	Auth         yauth.YAuth `json:"auth"`
+	Provider     string      `json:"provider"`
 	Game         string      `json:"game"`
 	LeagueID     int         `json:"league_id"`
 	DiscordToken string      `json:"discord_token"`
@@ -53,7 +54,9 @@ func main() {
 		return
 	}
 
-	dg.AddHandler(handlers.CreateMessageCreateHandler(providers.NewYahooProvider(&conf.Auth, conf.Game, conf.LeagueID)))
+	if conf.Provider == "yahoo" {
+		dg.AddHandler(handlers.CreateMessageCreateHandler(providers.NewYahooProvider(&conf.Auth, conf.Game, conf.LeagueID)))
+	}
 
 	dg.Identify.Intents = discordgo.IntentsGuildMessages
 
