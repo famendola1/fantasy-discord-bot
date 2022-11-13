@@ -2,12 +2,13 @@ package providers
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/famendola1/yauth"
-	"github.com/famendola1/yfantasy"
-	"github.com/famendola1/yfantasy/schema"
+	"github.com/famendola1/yflib"
+	"github.com/famendola1/yfquery/schema"
 )
 
 var (
@@ -28,7 +29,7 @@ var (
 
 // Yahoo is a provider for Yahoo Fantasy Sports.
 type Yahoo struct {
-	yf        *yfantasy.YFantasy
+	client    *http.Client
 	gameKey   string
 	leagueKey string
 }
@@ -36,9 +37,9 @@ type Yahoo struct {
 // NewYahooProvider returns a new Yahoo provider
 func NewYahooProvider(auth *yauth.YAuth, gameKey string, leagueID int) *Yahoo {
 	return &Yahoo{
-		yf:        yfantasy.New(auth.Client()),
+		client:    auth.Client(),
 		gameKey:   gameKey,
-		leagueKey: yfantasy.MakeLeagueKey(gameKey, leagueID),
+		leagueKey: yflib.MakeLeagueKey(gameKey, leagueID),
 	}
 }
 
@@ -82,9 +83,9 @@ func (y *Yahoo) Scoreboard(week int) string {
 	var err error
 
 	if week == 0 {
-		sb, err = y.yf.CurrentScoreboard(y.leagueKey)
+		sb, err = yflib.GetCurrentScoreboard(y.client, y.leagueKey)
 	} else {
-		sb, err = y.yf.Scoreboard(y.leagueKey, week)
+		sb, err = yflib.GetScoreboard(y.client, y.leagueKey, week)
 	}
 
 	if err != nil {
@@ -119,7 +120,7 @@ func formatYahooStandings(standings *schema.Standings) string {
 
 // Standings returns a formatted string containing the Yahoo league's standings.
 func (y *Yahoo) Standings() string {
-	standings, err := y.yf.Standings(y.leagueKey)
+	standings, err := yflib.GetLeagueStandings(y.client, y.leagueKey)
 	if err != nil {
 		return formatError(err)
 	}
@@ -158,7 +159,7 @@ func formatYahooRoster(team *schema.Team) string {
 
 // Roster returns a formatted string containg the roster of a team.
 func (y *Yahoo) Roster(teamName string) string {
-	tm, err := y.yf.TeamRoster(y.leagueKey, teamName)
+	tm, err := yflib.GetTeamRoster(y.client, y.leagueKey, teamName)
 	if err != nil {
 		return formatError(err)
 	}
@@ -190,19 +191,19 @@ func (y *Yahoo) PlayerStats(statsType, playerName string) string {
 	var statsTypeNum int
 	switch statsType {
 	case "season":
-		statsTypeNum = yfantasy.StatsTypeAverageSeason
+		statsTypeNum = yflib.StatsTypeAverageSeason
 		break
 	case "week":
-		statsTypeNum = yfantasy.StatsTypeLastWeekAverage
+		statsTypeNum = yflib.StatsTypeLastWeekAverage
 		break
 	case "month":
-		statsTypeNum = yfantasy.StatsTypeLastMonthAverage
+		statsTypeNum = yflib.StatsTypeLastMonthAverage
 		break
 	default:
 		return formatError(fmt.Errorf("invald stats type (%q) requested", statsType))
 	}
 
-	p, err := y.yf.PlayerStats(y.leagueKey, playerName, statsTypeNum)
+	p, err := yflib.GetPlayerStats(y.client, y.leagueKey, playerName, statsTypeNum)
 	if err != nil {
 		return formatError(err)
 	}
