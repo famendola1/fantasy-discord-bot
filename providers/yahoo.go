@@ -245,6 +245,7 @@ func formatStatsDiff(diff *yflib.StatsDiff) string {
 	return out.String()
 }
 
+// Compare computes the difference in stats between the two provided players.
 func (y *Yahoo) Compare(statsType, playerA, playerB string) string {
 	statsTypeNum, err := convertStatsType(statsType)
 	if err != nil {
