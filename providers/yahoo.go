@@ -186,8 +186,7 @@ func formatPlayerStats(player *schema.Player) string {
 	return out.String()
 }
 
-// PlayerStats returns a formatted string containing the stats for a player.
-func (y *Yahoo) PlayerStats(statsType, playerName string) string {
+func convertStatsType(statsType string) (int, error) {
 	var statsTypeNum int
 	switch statsType {
 	case "season":
@@ -200,7 +199,17 @@ func (y *Yahoo) PlayerStats(statsType, playerName string) string {
 		statsTypeNum = yflib.StatsTypeLastMonthAverage
 		break
 	default:
-		return formatError(fmt.Errorf("invald stats type (%q) requested", statsType))
+		return yflib.StatsTypeUnknown, fmt.Errorf("invald stats type (%q) requested", statsType)
+	}
+
+	return statsTypeNum, nil
+}
+
+// PlayerStats returns a formatted string containing the stats for a player.
+func (y *Yahoo) PlayerStats(statsType, playerName string) string {
+	statsTypeNum, err := convertStatsType(statsType)
+	if err != nil {
+		return formatError(err)
 	}
 
 	p, err := yflib.GetPlayerStats(y.client, y.leagueKey, playerName, statsTypeNum)
@@ -208,6 +217,46 @@ func (y *Yahoo) PlayerStats(statsType, playerName string) string {
 		return formatError(err)
 	}
 	return formatPlayerStats(p)
+}
+
+func formatStatsDiff(diff *yflib.StatsDiff) string {
+	var out strings.Builder
+
+	header := diff.PlayerA + " / " + diff.PlayerB
+	out.WriteString("```")
+	out.WriteString(header)
+	out.WriteString("\n")
+	out.WriteString(strings.Repeat("-", len(header)))
+	out.WriteString("\n\n")
+
+	out.WriteString(fmt.Sprintf("%-3s: %.3f\n", "FG%", diff.Diffs["FG%"]))
+	out.WriteString(fmt.Sprintf("%-3s: %.3f\n", "FT%", diff.Diffs["FT%"]))
+	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "3PM", diff.Diffs["3PM"]))
+	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "PTS", diff.Diffs["PTS"]))
+	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "REB", diff.Diffs["REB"]))
+	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "AST", diff.Diffs["AST"]))
+	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "STL", diff.Diffs["STL"]))
+	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "BLK", diff.Diffs["BLK"]))
+	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "TOV", diff.Diffs["TOV"]))
+
+	out.WriteString("\n")
+	out.WriteString("```")
+
+	return out.String()
+}
+
+func (y *Yahoo) Compare(statsType, playerA, playerB string) string {
+	statsTypeNum, err := convertStatsType(statsType)
+	if err != nil {
+		return formatError(err)
+	}
+
+	diff, err := yflib.ComparePlayersNBA9CAT(y.client, y.leagueKey, playerA, playerB, statsTypeNum)
+	if err != nil {
+		return formatError(err)
+	}
+
+	return formatStatsDiff(diff)
 }
 
 // Help returns the help docs.
@@ -230,6 +279,11 @@ func (y *Yahoo) Help() *discordgo.MessageEmbed {
 		&discordgo.MessageEmbedField{
 			Name:  "!stats <type> <player>",
 			Value: "Returns the stats of the requested player. The provided player's name must be at least 3 letters long. <type> must be one of season|week|month.",
+		})
+	embed.Fields = append(embed.Fields,
+		&discordgo.MessageEmbedField{
+			Name:  "!compare <type> <player1>/<player2>",
+			Value: "Returns the difference in stats between player1 and player2. The provided players' names must be at least 3 letters long. <type> must be one of season|week|month.",
 		})
 	return embed
 }

@@ -36,11 +36,28 @@ func CreateMessageCreateHandler(p providers.MessageCreateProvider) func(s *disco
 
 		if strings.HasPrefix(m.Content, "!stats ") {
 			args := strings.TrimPrefix(m.Content, "!stats ")
-			splitArgs := strings.Split(args, " ")
+			splitArgs := strings.Fields(args)
 			if (len(splitArgs)) < 2 {
 				s.ChannelMessageSend(m.ChannelID, "Error: invald !stats usage. See !help for usage.")
 			}
 			s.ChannelMessageSend(m.ChannelID, p.PlayerStats(splitArgs[0], strings.Join(splitArgs[1:], " ")))
+		}
+
+		if strings.HasPrefix(m.Content, "!compare ") {
+			args := strings.TrimPrefix(m.Content, "!compare ")
+			splitArgs := strings.Fields(args)
+			if (len(splitArgs)) < 2 {
+				s.ChannelMessageSend(m.ChannelID, "Error: invald !compare usage. See !help for usage.")
+			}
+
+			playersJoined := strings.Join(splitArgs[1:], " ")
+			players := strings.Split(playersJoined, "/")
+
+			if (len(players)) != 2 {
+				s.ChannelMessageSend(m.ChannelID, "Error: invald !compare usage. See !help for usage.")
+			}
+
+			s.ChannelMessageSend(m.ChannelID, p.Compare(splitArgs[0], players[0], players[1]))
 		}
 
 		if m.Content == "!help" {

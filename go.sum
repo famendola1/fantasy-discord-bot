@@ -9,6 +9,8 @@ github.com/famendola1/yauth v0.1.2 h1:5ax+8VIqOiJptPYq7PjEhaahtwlpbqzUmTNelnV0Br
 github.com/famendola1/yauth v0.1.2/go.mod h1:Uv3W9wmzcvTv0cSc68cGe5ZLuX9N5BIYmTYSF4gEduE=
 github.com/famendola1/yflib v0.1.0 h1:gCKeIibTKOCf8xQQwLt59Ns2uWD96OwTbCVVYRVZxLg=
 github.com/famendola1/yflib v0.1.0/go.mod h1:wdxjwMGlkQJdf30LvlmFRcnUZg/nNKYkhTTWCyHxA+0=
+github.com/famendola1/yflib v0.1.1 h1:9jOOW8rPqitBEZqXnvU8N4hKvfC/Ag96fUtuxc9VObo=
+github.com/famendola1/yflib v0.1.1/go.mod h1:wdxjwMGlkQJdf30LvlmFRcnUZg/nNKYkhTTWCyHxA+0=
 github.com/famendola1/yfquery v0.1.1 h1:NdrSYjZRE0mGUGQ88eyKdkK6F616LFOHMqBCYVdyp9M=
 github.com/famendola1/yfquery v0.1.1/go.mod h1:GiRy1fPVif0ERuHY+Zbphpe+KxeDDpIU82zVeR/UHkc=
 github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e h1:1r7pUrabqp18hOBcwBwiTsbnFeTZHV9eER/QT5JVZxY=
