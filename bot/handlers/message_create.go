@@ -55,9 +55,22 @@ func CreateMessageCreateHandler(p providers.MessageCreateProvider) func(s *disco
 
 			if (len(players)) != 2 {
 				s.ChannelMessageSend(m.ChannelID, "Error: invald !compare usage. See !help for usage.")
+				return
 			}
 
 			s.ChannelMessageSend(m.ChannelID, p.Compare(splitArgs[0], players[0], players[1]))
+		}
+
+		if strings.HasPrefix(m.Content, "!analyze ") {
+			args := strings.TrimPrefix(m.Content, "!analyze ")
+			splitArgs := strings.Fields(args)
+
+			if (len(splitArgs)) != 2 {
+				s.ChannelMessageSend(m.ChannelID, "Error: invald !analyze usage. See !help for usage.")
+				return
+			}
+
+			s.ChannelMessageSend(m.ChannelID, p.AnalyzeFreeAgents(splitArgs[0], strings.Split(splitArgs[1], ",")))
 		}
 
 		if m.Content == "!help" {

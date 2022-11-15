@@ -10,5 +10,6 @@ type MessageCreateProvider interface {
 	Roster(teamName string) string
 	PlayerStats(statsType, playerName string) string
 	Compare(statsType, playerA, playerB string) string
+	AnalyzeFreeAgents(statsType string, stats []string) string
 	Help() *discordgo.MessageEmbed
 }

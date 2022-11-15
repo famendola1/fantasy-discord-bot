@@ -11,22 +11,6 @@ import (
 	"github.com/famendola1/yfquery/schema"
 )
 
-var (
-	statIDToName = map[int]string{
-		9004003: "FG",
-		5:       "FG%",
-		9007006: "FT",
-		8:       "FT%",
-		10:      "3PM",
-		12:      "PTS",
-		15:      "REB",
-		16:      "AST",
-		17:      "STL",
-		18:      "BLK",
-		19:      "TOV",
-	}
-)
-
 // Yahoo is a provider for Yahoo Fantasy Sports.
 type Yahoo struct {
 	client    *http.Client
@@ -177,7 +161,7 @@ func formatPlayerStats(player *schema.Player) string {
 	out.WriteString("\n\n")
 
 	for _, s := range player.PlayerStats.Stats.Stat {
-		out.WriteString(fmt.Sprintf("%-3s: %s", statIDToName[s.StatID], s.Value))
+		out.WriteString(fmt.Sprintf("%-3s: %s", yflib.StatIDToName[s.StatID], s.Value))
 		out.WriteString("\n")
 	}
 
@@ -193,10 +177,10 @@ func convertStatsType(statsType string) (int, error) {
 		statsTypeNum = yflib.StatsTypeAverageSeason
 		break
 	case "week":
-		statsTypeNum = yflib.StatsTypeLastWeekAverage
+		statsTypeNum = yflib.StatsTypeAverageLastWeek
 		break
 	case "month":
-		statsTypeNum = yflib.StatsTypeLastMonthAverage
+		statsTypeNum = yflib.StatsTypeAverageLastMonth
 		break
 	default:
 		return yflib.StatsTypeUnknown, fmt.Errorf("invald stats type (%q) requested", statsType)
@@ -260,6 +244,49 @@ func (y *Yahoo) Compare(statsType, playerA, playerB string) string {
 	return formatStatsDiff(diff)
 }
 
+func formatFreeAgents(freeAgents map[string][]*schema.Player) string {
+	var out strings.Builder
+
+	out.WriteString("```")
+	out.WriteString("\n")
+	for stat, players := range freeAgents {
+		out.WriteString(stat)
+		out.WriteString(fmt.Sprintf("\n%s\n", strings.Repeat("-", 20)))
+		for _, player := range players {
+			out.WriteString(player.Name.Full)
+			for _, s := range player.PlayerStats.Stats.Stat {
+				if yflib.StatIDToName[s.StatID] == stat {
+					out.WriteString(fmt.Sprintf(" (%s)", s.Value))
+				}
+			}
+			out.WriteString("\n")
+		}
+		out.WriteString("\n\n")
+	}
+	out.WriteString("\n```")
+
+	return out.String()
+}
+
+// AnalyzeFreeAgents prints the top 5 players for the given stats with th given type.
+func (y *Yahoo) AnalyzeFreeAgents(statsType string, stats []string) string {
+	statsTypeNum, err := convertStatsType(statsType)
+	if err != nil {
+		return formatError(err)
+	}
+
+	freeAgents := make(map[string][]*schema.Player)
+	for _, stat := range stats {
+		players, err := yflib.SortFreeAgentsByStat(y.client, y.leagueKey, yflib.StatNameToID[strings.ToUpper(stat)], 5, statsTypeNum)
+		if err != nil {
+			return formatError(err)
+		}
+
+		freeAgents[strings.ToUpper(stat)] = players
+	}
+	return formatFreeAgents(freeAgents)
+}
+
 // Help returns the help docs.
 func (y *Yahoo) Help() *discordgo.MessageEmbed {
 	embed := &discordgo.MessageEmbed{
@@ -285,6 +312,11 @@ func (y *Yahoo) Help() *discordgo.MessageEmbed {
 		&discordgo.MessageEmbedField{
 			Name:  "!compare <type> <player1>/<player2>",
 			Value: "Returns the difference in stats between player1 and player2. The provided players' names must be at least 3 letters long. <type> must be one of season|week|month.",
+		})
+	embed.Fields = append(embed.Fields,
+		&discordgo.MessageEmbedField{
+			Name:  "!analyze <type> <stat1>,<stat2>,...",
+			Value: "Returns the top 5 free agents for each stat. <type> must be one of season|week|month.",
 		})
 	return embed
 }
