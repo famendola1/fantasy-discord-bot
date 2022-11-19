@@ -3,11 +3,13 @@ package providers
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/famendola1/yauth"
 	"github.com/famendola1/yflib"
+	"github.com/famendola1/yfquery"
 	"github.com/famendola1/yfquery/schema"
 )
 
@@ -17,6 +19,20 @@ type Yahoo struct {
 	gameKey   string
 	leagueKey string
 }
+
+var (
+	statIDs9CAT = map[int]bool{
+		5:  true,
+		8:  true,
+		10: true,
+		12: true,
+		15: true,
+		16: true,
+		17: true,
+		18: true,
+		19: true,
+	}
+)
 
 // NewYahooProvider returns a new Yahoo provider
 func NewYahooProvider(auth *yauth.YAuth, gameKey string, leagueID int) *Yahoo {
@@ -287,6 +303,95 @@ func (y *Yahoo) AnalyzeFreeAgents(statsType string, stats []string) string {
 	return formatFreeAgents(freeAgents)
 }
 
+type matchupResult struct {
+	win, tie int
+}
+
+func formatLeagueResults(teamName string, results map[string]matchupResult) string {
+	var out strings.Builder
+
+	header := teamName + " vs. The League"
+	out.WriteString("```")
+	out.WriteString(header)
+	out.WriteString("\n")
+	out.WriteString(strings.Repeat("-", len(header)))
+	out.WriteString("\n\n")
+
+	win := 0
+	loss := 0
+	tie := 0
+	for tm, result := range results {
+		out.WriteString(fmt.Sprintf("%s (%d)\n", teamName, result.win))
+		out.WriteString(fmt.Sprintf("%s (%d)\n\n", tm, 9-(result.win+result.tie)))
+
+		if result.win > 9-(result.win+result.tie) {
+			win++
+		} else if result.win < 9-(result.win+result.tie) {
+			loss++
+		} else {
+			tie++
+		}
+	}
+
+	out.WriteString(fmt.Sprintf("Total: %d-%d-%d", win, loss, tie))
+	out.WriteString("```")
+
+	return out.String()
+}
+
+// VsLeague computes the given teams matchup outcome against every other team in the league.
+func (y *Yahoo) VsLeague(teamName string, week int) string {
+	fc, _ := yfquery.League().Key(y.leagueKey).Teams().Stats().Week(week).Get(y.client)
+
+	teamStats := make(map[string]map[int]float64)
+	for _, tm := range fc.League.Teams.Team {
+		teamStats[tm.Name] = make(map[int]float64)
+		for _, stat := range tm.TeamStats.Stats.Stat {
+			if !statIDs9CAT[stat.StatID] {
+				continue
+			}
+			val, _ := strconv.ParseFloat(stat.Value, 64)
+			teamStats[tm.Name][stat.StatID] = val
+		}
+	}
+
+	results := make(map[string]matchupResult)
+	for _, tm := range fc.League.Teams.Team {
+		if tm.Name == teamName {
+			continue
+		}
+
+		results[tm.Name] = matchupResult{}
+		for stat := range statIDs9CAT {
+			if stat == 19 {
+				if teamStats[teamName][stat] < teamStats[tm.Name][stat] {
+					res := results[tm.Name]
+					res.win++
+					results[tm.Name] = res
+				}
+				if teamStats[teamName][stat] == teamStats[tm.Name][stat] {
+					res := results[tm.Name]
+					res.tie++
+					results[tm.Name] = res
+				}
+				continue
+			}
+			if teamStats[teamName][stat] > teamStats[tm.Name][stat] {
+				res := results[tm.Name]
+				res.win++
+				results[tm.Name] = res
+			}
+			if teamStats[teamName][stat] == teamStats[tm.Name][stat] {
+				res := results[tm.Name]
+				res.tie++
+				results[tm.Name] = res
+			}
+		}
+	}
+
+	return formatLeagueResults(teamName, results)
+}
+
 // Help returns the help docs.
 func (y *Yahoo) Help() *discordgo.MessageEmbed {
 	embed := &discordgo.MessageEmbed{
@@ -298,11 +403,19 @@ func (y *Yahoo) Help() *discordgo.MessageEmbed {
 		&discordgo.MessageEmbedField{Name: "!help", Value: "Returns this message."})
 	embed.Fields = append(embed.Fields,
 		&discordgo.MessageEmbedField{
-			Name:  "!scoreboard <week>",
+			Name:  "!scoreboard [week]",
 			Value: "Returns the scoreboard of the given week. If no week is provided, returns the current scoreboard.",
 		})
 	embed.Fields = append(embed.Fields,
-		&discordgo.MessageEmbedField{Name: "!roster <team>", Value: "Returns the roster of the given team."})
+		&discordgo.MessageEmbedField{
+			Name:  "!standings",
+			Value: "Returns the current league standings.",
+		})
+	embed.Fields = append(embed.Fields,
+		&discordgo.MessageEmbedField{
+			Name:  "!roster <team>",
+			Value: "Returns the roster of the given team.",
+		})
 	embed.Fields = append(embed.Fields,
 		&discordgo.MessageEmbedField{
 			Name:  "!stats <type> <player>",
@@ -317,6 +430,11 @@ func (y *Yahoo) Help() *discordgo.MessageEmbed {
 		&discordgo.MessageEmbedField{
 			Name:  "!analyze <type> <stat1>,<stat2>,...",
 			Value: "Returns the top 5 free agents for each stat. <type> must be one of season|week|month.",
+		})
+	embed.Fields = append(embed.Fields,
+		&discordgo.MessageEmbedField{
+			Name:  "!vs [week] <team>",
+			Value: "Returns the matchups results of the provided team again all other teams in the league. If week is not provided, the current week is used.",
 		})
 	return embed
 }
