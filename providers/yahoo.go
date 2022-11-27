@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/famendola1/yauth"
@@ -415,7 +416,8 @@ func (y *Yahoo) Owner(playerNames []string) string {
 		case "freeagents":
 			out.WriteString("Free Agent")
 		case "waivers":
-			out.WriteString(fmt.Sprintf("Waivers - %s", player.Ownership.WaiverDate))
+			t, _ := time.Parse("2006-01-02", player.Ownership.WaiverDate)
+			out.WriteString(fmt.Sprintf("Waivers (%s)", t.Format("Mon 01/02")))
 		case "team":
 			out.WriteString(player.Ownership.OwnerTeamName)
 		}
