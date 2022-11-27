@@ -366,7 +366,8 @@ func (y *Yahoo) Schedule(teamName string) string {
 	loss := 0
 	tie := 0
 	for _, matchup := range tm.Matchups.Matchup {
-		if matchup.Status == "postevent" {
+		switch matchup.Status {
+		case "postevent":
 			var result string
 			if matchup.IsTied {
 				result = "T"
@@ -380,15 +381,11 @@ func (y *Yahoo) Schedule(teamName string) string {
 				loss++
 			}
 			out.WriteString(fmt.Sprintf("%2d: %s (%s)\n", matchup.Week, matchup.Teams.Team[1].Name, result))
-			continue
-		}
-
-		if matchup.Status == "midevent" {
+		case "midevent":
 			out.WriteString(fmt.Sprintf("%2d: *%s*\n", matchup.Week, matchup.Teams.Team[1].Name))
-			continue
+		case "preevent":
+			out.WriteString(fmt.Sprintf("%2d: %s\n", matchup.Week, matchup.Teams.Team[1].Name))
 		}
-
-		out.WriteString(fmt.Sprintf("%2d: %s\n", matchup.Week, matchup.Teams.Team[1].Name))
 	}
 	out.WriteString(fmt.Sprintf("\nTotal: %d-%d-%d", win, loss, tie))
 	out.WriteString("```")
