@@ -3,13 +3,11 @@ package providers
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/famendola1/yauth"
 	"github.com/famendola1/yflib"
-	"github.com/famendola1/yfquery"
 	"github.com/famendola1/yfquery/schema"
 )
 
@@ -229,15 +227,15 @@ func formatStatsDiff(diff *yflib.StatsDiff) string {
 	out.WriteString(strings.Repeat("-", len(header)))
 	out.WriteString("\n\n")
 
-	out.WriteString(fmt.Sprintf("%-3s: %.3f\n", "FG%", diff.Diffs["FG%"]))
-	out.WriteString(fmt.Sprintf("%-3s: %.3f\n", "FT%", diff.Diffs["FT%"]))
-	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "3PM", diff.Diffs["3PM"]))
-	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "PTS", diff.Diffs["PTS"]))
-	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "REB", diff.Diffs["REB"]))
-	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "AST", diff.Diffs["AST"]))
-	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "STL", diff.Diffs["STL"]))
-	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "BLK", diff.Diffs["BLK"]))
-	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "TOV", diff.Diffs["TOV"]))
+	out.WriteString(fmt.Sprintf("%-3s: %.3f\n", "FG%", diff.Diffs[yflib.StatNameToID["FG%"]]))
+	out.WriteString(fmt.Sprintf("%-3s: %.3f\n", "FT%", diff.Diffs[yflib.StatNameToID["FT%"]]))
+	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "3PM", diff.Diffs[yflib.StatNameToID["3PM"]]))
+	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "PTS", diff.Diffs[yflib.StatNameToID["PTS"]]))
+	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "REB", diff.Diffs[yflib.StatNameToID["REB"]]))
+	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "AST", diff.Diffs[yflib.StatNameToID["AST"]]))
+	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "STL", diff.Diffs[yflib.StatNameToID["STL"]]))
+	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "BLK", diff.Diffs[yflib.StatNameToID["BLK"]]))
+	out.WriteString(fmt.Sprintf("%-3s: %.1f\n", "TOV", diff.Diffs[yflib.StatNameToID["TOV"]]))
 
 	out.WriteString("\n")
 	out.WriteString("```")
@@ -252,7 +250,7 @@ func (y *Yahoo) Compare(statsType, playerA, playerB string) string {
 		return formatError(err)
 	}
 
-	diff, err := yflib.ComparePlayersNBA9CAT(y.client, y.leagueKey, playerA, playerB, statsTypeNum)
+	diff, err := yflib.ComparePlayers(y.client, y.leagueKey, playerA, playerB, statsTypeNum, yflib.NBA9CATIDs)
 	if err != nil {
 		return formatError(err)
 	}
@@ -307,10 +305,10 @@ type matchupResult struct {
 	win, tie int
 }
 
-func formatLeagueResults(teamName string, results map[string]matchupResult) string {
+func formatCategoryMatchupResults(results []yflib.CategoryMatchupResult) string {
 	var out strings.Builder
 
-	header := teamName + " vs. The League"
+	header := results[0].HomeTeam + " vs. The League"
 	out.WriteString("```")
 	out.WriteString(header)
 	out.WriteString("\n")
@@ -320,13 +318,13 @@ func formatLeagueResults(teamName string, results map[string]matchupResult) stri
 	win := 0
 	loss := 0
 	tie := 0
-	for tm, result := range results {
-		out.WriteString(fmt.Sprintf("%s (%d)\n", teamName, result.win))
-		out.WriteString(fmt.Sprintf("%s (%d)\n\n", tm, 9-(result.win+result.tie)))
+	for _, res := range results {
+		out.WriteString(fmt.Sprintf("%s (%d)\n", res.HomeTeam, len(res.CategoriesWon)))
+		out.WriteString(fmt.Sprintf("%s (%d)\n\n", res.AwayTeam, len(res.CategoriesLost)))
 
-		if result.win > 9-(result.win+result.tie) {
+		if len(res.CategoriesWon) > len(res.CategoriesLost) {
 			win++
-		} else if result.win < 9-(result.win+result.tie) {
+		} else if len(res.CategoriesWon) < len(res.CategoriesLost) {
 			loss++
 		} else {
 			tie++
@@ -341,55 +339,90 @@ func formatLeagueResults(teamName string, results map[string]matchupResult) stri
 
 // VsLeague computes the given teams matchup outcome against every other team in the league.
 func (y *Yahoo) VsLeague(teamName string, week int) string {
-	fc, _ := yfquery.League().Key(y.leagueKey).Teams().Stats().Week(week).Get(y.client)
+	results, err := yflib.CalculateCategoryMathchupResultsVsLeague(y.client, y.leagueKey, teamName, yflib.NBA9CATIDs, week)
+	if err != nil {
+		return formatError(err)
+	}
+	return formatCategoryMatchupResults(results)
+}
 
-	teamStats := make(map[string]map[int]float64)
-	for _, tm := range fc.League.Teams.Team {
-		teamStats[tm.Name] = make(map[int]float64)
-		for _, stat := range tm.TeamStats.Stats.Stat {
-			if !statIDs9CAT[stat.StatID] {
-				continue
-			}
-			val, _ := strconv.ParseFloat(stat.Value, 64)
-			teamStats[tm.Name][stat.StatID] = val
-		}
+// Schedule returns the season schedule for the given team.
+func (y *Yahoo) Schedule(teamName string) string {
+	tm, err := yflib.GetTeamMatchups(y.client, y.leagueKey, teamName)
+	if err != nil {
+		return formatError(err)
 	}
 
-	results := make(map[string]matchupResult)
-	for _, tm := range fc.League.Teams.Team {
-		if tm.Name == teamName {
+	var out strings.Builder
+	header := tm.Name + " Schedule"
+	out.WriteString("```")
+	out.WriteString(header)
+	out.WriteString("\n")
+	out.WriteString(strings.Repeat("-", len(header)))
+	out.WriteString("\n\n")
+
+	win := 0
+	loss := 0
+	tie := 0
+	for _, matchup := range tm.Matchups.Matchup {
+		if matchup.Status == "postevent" {
+			var result string
+			if matchup.IsTied {
+				result = "T"
+				tie++
+			}
+			if matchup.WinnerTeamKey == tm.TeamKey {
+				result = "W"
+				win++
+			} else {
+				result = "L"
+				loss++
+			}
+			out.WriteString(fmt.Sprintf("%2d: %s (%s)\n", matchup.Week, matchup.Teams.Team[1].Name, result))
 			continue
 		}
 
-		results[tm.Name] = matchupResult{}
-		for stat := range statIDs9CAT {
-			if stat == 19 {
-				if teamStats[teamName][stat] < teamStats[tm.Name][stat] {
-					res := results[tm.Name]
-					res.win++
-					results[tm.Name] = res
-				}
-				if teamStats[teamName][stat] == teamStats[tm.Name][stat] {
-					res := results[tm.Name]
-					res.tie++
-					results[tm.Name] = res
-				}
-				continue
-			}
-			if teamStats[teamName][stat] > teamStats[tm.Name][stat] {
-				res := results[tm.Name]
-				res.win++
-				results[tm.Name] = res
-			}
-			if teamStats[teamName][stat] == teamStats[tm.Name][stat] {
-				res := results[tm.Name]
-				res.tie++
-				results[tm.Name] = res
-			}
+		if matchup.Status == "midevent" {
+			out.WriteString(fmt.Sprintf("%2d: *%s*\n", matchup.Week, matchup.Teams.Team[1].Name))
+			continue
 		}
+
+		out.WriteString(fmt.Sprintf("%2d: %s\n", matchup.Week, matchup.Teams.Team[1].Name))
+	}
+	out.WriteString(fmt.Sprintf("\nTotal: %d-%d-%d", win, loss, tie))
+	out.WriteString("```")
+
+	return out.String()
+}
+
+// Owner returns the owner for all the provided players.
+func (y *Yahoo) Owner(playerNames []string) string {
+	players := []*schema.Player{}
+	for _, name := range playerNames {
+		player, err := yflib.GetPlayerOwnership(y.client, y.leagueKey, name)
+		if err != nil {
+			return formatError(err)
+		}
+		players = append(players, player)
 	}
 
-	return formatLeagueResults(teamName, results)
+	var out strings.Builder
+	out.WriteString("```")
+
+	for _, player := range players {
+		out.WriteString(fmt.Sprintf("%s: ", player.Name.Full))
+		switch player.Ownership.OwnershipType {
+		case "freeagents":
+			out.WriteString("Free Agent")
+		case "waivers":
+			out.WriteString(fmt.Sprintf("Waivers - %s", player.Ownership.WaiverDate))
+		case "team":
+			out.WriteString(player.Ownership.OwnerTeamName)
+		}
+		out.WriteString("\n\n")
+	}
+	out.WriteString("```")
+	return out.String()
 }
 
 // Help returns the help docs.
@@ -434,7 +467,17 @@ func (y *Yahoo) Help() *discordgo.MessageEmbed {
 	embed.Fields = append(embed.Fields,
 		&discordgo.MessageEmbedField{
 			Name:  "!vs [week] <team>",
-			Value: "Returns the matchups results of the provided team again all other teams in the league. If week is not provided, the current week is used.",
+			Value: "Returns the matchups results of the provided team against all other teams in the league. If week is not provided, the current week is used.",
+		})
+	embed.Fields = append(embed.Fields,
+		&discordgo.MessageEmbedField{
+			Name:  "!schedule <team>",
+			Value: "Returns season schedule of the provided team.",
+		})
+	embed.Fields = append(embed.Fields,
+		&discordgo.MessageEmbedField{
+			Name:  "!owner <player1>,<player2>,...",
+			Value: "Returns the current owner of the provided players.",
 		})
 	return embed
 }

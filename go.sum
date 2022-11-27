@@ -25,6 +25,16 @@ github.com/famendola1/yflib v0.1.7 h1:dqf01N2oQ/2uaeiB0xRSO1QoWr9WlSjlUaZnEh8kkf
 github.com/famendola1/yflib v0.1.7/go.mod h1:6aUqQOSwFPGSYCPtHenSF9dfKlzi0rgICMmN4J42kjc=
 github.com/famendola1/yflib v0.1.8 h1:e6HlfW94Iz5xTj7Jb7sq+if4JRT0BQ3skIR3P+ilmX8=
 github.com/famendola1/yflib v0.1.8/go.mod h1:NC/rq0tg8jR6W353cf8ZQvpiiAsGdLKqAaDUKLxZrP4=
+github.com/famendola1/yflib v0.1.9 h1:XUxw0s62IyAqUh3cqi36CMI+cuejg9Oi8fNDLzctArI=
+github.com/famendola1/yflib v0.1.9/go.mod h1:NC/rq0tg8jR6W353cf8ZQvpiiAsGdLKqAaDUKLxZrP4=
+github.com/famendola1/yflib v0.1.10 h1:jcoZIM5ikbqiCgjGGoCG5CLgXwQ30Eg6SxN3TJoXiuE=
+github.com/famendola1/yflib v0.1.10/go.mod h1:NC/rq0tg8jR6W353cf8ZQvpiiAsGdLKqAaDUKLxZrP4=
+github.com/famendola1/yflib v0.1.11 h1:J+NMD4XurfKJW7HfBFa4LQY8DjeHtvJzt+0fiELa73E=
+github.com/famendola1/yflib v0.1.11/go.mod h1:NC/rq0tg8jR6W353cf8ZQvpiiAsGdLKqAaDUKLxZrP4=
+github.com/famendola1/yflib v0.1.12 h1:VUqGXzQfl5Igoq/1anBtnk2ediDSk0K/Y5Qb7GZWUws=
+github.com/famendola1/yflib v0.1.12/go.mod h1:aqNfPpMcWcUn6LAPFKeoS9nyrXjY95YdCBl0e7wH1RI=
+github.com/famendola1/yflib v0.1.13 h1:ZIC2zPGxI8g1sbFMwqJ3T4F1/3LwTSQLplw1DSg5kd0=
+github.com/famendola1/yflib v0.1.13/go.mod h1:GE3n8jzlLEa20D8xUu+gYQb35dAk2/ME+Kn5KX2ivcs=
 github.com/famendola1/yfquery v0.1.1 h1:NdrSYjZRE0mGUGQ88eyKdkK6F616LFOHMqBCYVdyp9M=
 github.com/famendola1/yfquery v0.1.1/go.mod h1:GiRy1fPVif0ERuHY+Zbphpe+KxeDDpIU82zVeR/UHkc=
 github.com/famendola1/yfquery v0.1.3 h1:eeW23f2vkAEEnh968xq5w0b8WySUTBIh3xAaYJYllVM=
@@ -33,6 +43,10 @@ github.com/famendola1/yfquery v0.1.4 h1:PVJW9ROhrODyl+v3VAA2SgFu/XiluQJVDCjPCLc7
 github.com/famendola1/yfquery v0.1.4/go.mod h1:GiRy1fPVif0ERuHY+Zbphpe+KxeDDpIU82zVeR/UHkc=
 github.com/famendola1/yfquery v0.1.5 h1:Ipx/qOpigLag6n+c+XVVehKtWgUZQDiioeJkyj7Kais=
 github.com/famendola1/yfquery v0.1.5/go.mod h1:GiRy1fPVif0ERuHY+Zbphpe+KxeDDpIU82zVeR/UHkc=
+github.com/famendola1/yfquery v0.1.6 h1:GCUNdxK9gt3Scu+VNQHGf86GvOxGQ6nC5+FGrYXiXnY=
+github.com/famendola1/yfquery v0.1.6/go.mod h1:GiRy1fPVif0ERuHY+Zbphpe+KxeDDpIU82zVeR/UHkc=
+github.com/famendola1/yfquery v0.1.7 h1:Nnta2HSLaBty9Aqn+Vb325UBuUlFg3/0I0iq/tIo6PY=
+github.com/famendola1/yfquery v0.1.7/go.mod h1:GiRy1fPVif0ERuHY+Zbphpe+KxeDDpIU82zVeR/UHkc=
 github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e h1:1r7pUrabqp18hOBcwBwiTsbnFeTZHV9eER/QT5JVZxY=
 github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=

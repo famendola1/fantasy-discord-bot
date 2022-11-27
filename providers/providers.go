@@ -12,5 +12,7 @@ type MessageCreateProvider interface {
 	Compare(statsType, playerA, playerB string) string
 	AnalyzeFreeAgents(statsType string, stats []string) string
 	VsLeague(teamName string, week int) string
+	Schedule(teamName string) string
+	Owner(playerName []string) string
 	Help() *discordgo.MessageEmbed
 }
