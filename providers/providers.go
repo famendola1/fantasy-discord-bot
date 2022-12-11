@@ -14,5 +14,6 @@ type MessageCreateProvider interface {
 	VsLeague(teamName string, week int) string
 	Schedule(teamName string) string
 	Owner(playerName []string) string
+	Leaders(date string) string
 	Help() *discordgo.MessageEmbed
 }

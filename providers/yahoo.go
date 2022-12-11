@@ -31,6 +31,7 @@ var (
 		18: true,
 		19: true,
 	}
+	orderedStats9CAT = []int{5, 8, 10, 12, 15, 16, 17, 18, 19}
 )
 
 // NewYahooProvider returns a new Yahoo provider
@@ -424,6 +425,41 @@ func (y *Yahoo) Owner(playerNames []string) string {
 	return out.String()
 }
 
+// Leaders returns the stat category leaders for a given day.
+func (y *Yahoo) Leaders(date string) string {
+	leaders := make(map[int][]schema.Player)
+	for stat := range statIDs9CAT {
+		players, err := yflib.StatCategoryLeaders(y.client, date, y.gameKey, stat, 5)
+		if err != nil {
+			return formatError(err)
+		}
+		leaders[stat] = append(leaders[stat], players...)
+	}
+
+	var out strings.Builder
+	out.WriteString("```\n")
+	header := fmt.Sprintf("%s Stat Leaders\n", date)
+	out.WriteString(header)
+	out.WriteString(strings.Repeat("-", len(header)))
+	out.WriteString("\n\n")
+	for _, stat := range orderedStats9CAT {
+		players := leaders[stat]
+		out.WriteString(yflib.StatIDToName[stat] + "\n")
+		out.WriteString(strings.Repeat("-", 25) + "\n")
+		for _, p := range players {
+			out.WriteString(fmt.Sprintf("%s - %s", p.Name.Full, p.DisplayPosition))
+			for _, s := range p.PlayerStats.Stats.Stat {
+				if s.StatID == stat {
+					out.WriteString(fmt.Sprintf(" (%s)\n", s.Value))
+				}
+			}
+		}
+		out.WriteString("\n")
+	}
+	out.WriteString("```")
+	return out.String()
+}
+
 // Help returns the help docs.
 func (y *Yahoo) Help() *discordgo.MessageEmbed {
 	embed := &discordgo.MessageEmbed{
@@ -477,6 +513,11 @@ func (y *Yahoo) Help() *discordgo.MessageEmbed {
 		&discordgo.MessageEmbedField{
 			Name:  "!owner <player1>,<player2>,...",
 			Value: "Returns the current owner of the provided players.",
+		})
+	embed.Fields = append(embed.Fields,
+		&discordgo.MessageEmbedField{
+			Name:  "!leaders <date>",
+			Value: "Returns the stat category leaders for a given day. date is formatted as YYYY-MM-DD, if no date is provided then the current date in America/Los_Angeles is used.",
 		})
 	return embed
 }

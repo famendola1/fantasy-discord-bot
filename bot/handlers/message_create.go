@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/famendola1/fantasy-discord-bot/providers"
@@ -139,6 +140,21 @@ func CreateMessageCreateHandler(p providers.MessageCreateProvider) func(s *disco
 			}
 
 			s.ChannelMessageSend(m.ChannelID, p.Owner(args))
+		}
+
+		if strings.HasPrefix(m.Content, "!leaders") {
+			args := parseArgs("!leaders", m.Content, -1, "")
+			pst, _ := time.LoadLocation("America/Los_Angeles")
+			date := time.Now().In(pst).Format("2006-01-02")
+			if len(args) > 1 {
+				s.ChannelMessageSend(m.ChannelID, usageError("leaders"))
+				return
+			}
+
+			if len(args) == 1 {
+				date = args[0]
+			}
+			s.ChannelMessageSend(m.ChannelID, p.Leaders(date))
 		}
 
 		if m.Content == "!help" {
