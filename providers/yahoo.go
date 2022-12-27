@@ -3,12 +3,14 @@ package providers
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/famendola1/yauth"
 	"github.com/famendola1/yflib"
+	"github.com/famendola1/yfquery"
 	"github.com/famendola1/yfquery/schema"
 )
 
@@ -303,10 +305,6 @@ func (y *Yahoo) AnalyzeFreeAgents(statsType string, stats []string) string {
 	return formatFreeAgents(freeAgents)
 }
 
-type matchupResult struct {
-	win, tie int
-}
-
 func formatCategoryMatchupResults(results []yflib.CategoryMatchupResult) string {
 	var out strings.Builder
 
@@ -465,6 +463,75 @@ func (y *Yahoo) Leaders(date string) string {
 	return out.String()
 }
 
+// HeadToHead displays the matchup results between the two given teams on the given week.
+func (y *Yahoo) HeadToHead(week int, teamA, teamB string) string {
+	allTeams, err := yfquery.League().Key(y.leagueKey).Teams().Stats().Week(week).Get(y.client)
+	if err != nil {
+		return formatError(err)
+	}
+
+	var teamAStats schema.TeamStats
+	var teamBStats schema.TeamStats
+
+	for _, tm := range allTeams.League.Teams.Team {
+		if tm.Name == teamA {
+			teamAStats = tm.TeamStats
+			continue
+		}
+
+		if tm.Name == teamB {
+			teamBStats = tm.TeamStats
+			continue
+		}
+	}
+
+	if len(teamAStats.Stats.Stat) == 0 {
+		return formatError(fmt.Errorf("%q team not found", teamA))
+	}
+	if len(teamBStats.Stats.Stat) == 0 {
+		return formatError(fmt.Errorf("%q team not found", teamB))
+	}
+
+	var out strings.Builder
+	out.WriteString("```\n")
+	header := fmt.Sprintf("H2H: %s vs %s\n", teamA, teamB)
+	out.WriteString(header)
+	out.WriteString(strings.Repeat("-", len(header)))
+	out.WriteString("\n\n")
+
+	var w, l, t int
+	for i, stat := range teamAStats.Stats.Stat {
+		teamAVal := stat.Value
+		teamBVal := teamBStats.Stats.Stat[i].Value
+		if statIDs9CAT[stat.StatID] {
+			teamAStat, _ := strconv.ParseFloat(stat.Value, 32)
+			teamBStat, _ := strconv.ParseFloat(teamBStats.Stats.Stat[i].Value, 32)
+			if teamAStat == teamBStat {
+				t++
+			}
+
+			if teamAStat > teamBStat {
+				w++
+			}
+
+			if teamAStat < teamBStat {
+				l++
+			}
+
+			if stat.StatID == 19 && teamAStat != teamBStat {
+				l++
+				w--
+			}
+		}
+
+		out.WriteString(fmt.Sprintf("%-3s: %8s | %s\n", yflib.StatIDToName[stat.StatID], teamAVal, teamBVal))
+	}
+	out.WriteString(fmt.Sprintf("\nTotal: %d-%d-%d", w, l, t))
+	out.WriteString("```")
+
+	return out.String()
+}
+
 // Help returns the help docs.
 func (y *Yahoo) Help() *discordgo.MessageEmbed {
 	embed := &discordgo.MessageEmbed{
@@ -523,6 +590,11 @@ func (y *Yahoo) Help() *discordgo.MessageEmbed {
 		&discordgo.MessageEmbedField{
 			Name:  "!leaders <date>",
 			Value: "Returns the stat category leaders for a given day. date is formatted as YYYY-MM-DD, if no date is provided then the current date in America/Los_Angeles is used. 'yesterday' can be used as a shortcut for the previous day's leaders.",
+		})
+	embed.Fields = append(embed.Fields,
+		&discordgo.MessageEmbedField{
+			Name:  "!h2h [week] <team1>/<team2>",
+			Value: "Returns the matchup result between the two given teams for the given week. If no week is provided, the current week is used.",
 		})
 	return embed
 }

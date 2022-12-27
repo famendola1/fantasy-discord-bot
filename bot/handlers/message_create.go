@@ -57,10 +57,12 @@ func CreateMessageCreateHandler(p providers.MessageCreateProvider) func(s *disco
 				}
 			}
 			s.ChannelMessageSend(m.ChannelID, p.Scoreboard(week))
+			return
 		}
 
 		if m.Content == "!standings" {
 			s.ChannelMessageSend(m.ChannelID, p.Standings())
+			return
 		}
 
 		if strings.HasPrefix(m.Content, "!roster ") {
@@ -70,6 +72,7 @@ func CreateMessageCreateHandler(p providers.MessageCreateProvider) func(s *disco
 				return
 			}
 			s.ChannelMessageSend(m.ChannelID, p.Roster(args[0]))
+			return
 		}
 
 		if strings.HasPrefix(m.Content, "!stats ") {
@@ -79,6 +82,7 @@ func CreateMessageCreateHandler(p providers.MessageCreateProvider) func(s *disco
 				return
 			}
 			s.ChannelMessageSend(m.ChannelID, p.PlayerStats(args[0], args[1]))
+			return
 		}
 
 		if strings.HasPrefix(m.Content, "!compare ") {
@@ -89,6 +93,7 @@ func CreateMessageCreateHandler(p providers.MessageCreateProvider) func(s *disco
 			}
 
 			s.ChannelMessageSend(m.ChannelID, p.Compare(args[0], args[1], args[2]))
+			return
 		}
 
 		if strings.HasPrefix(m.Content, "!analyze ") {
@@ -100,6 +105,7 @@ func CreateMessageCreateHandler(p providers.MessageCreateProvider) func(s *disco
 			}
 
 			s.ChannelMessageSend(m.ChannelID, p.AnalyzeFreeAgents(args[0], args[1:]))
+			return
 		}
 
 		if strings.HasPrefix(m.Content, "!vs ") {
@@ -120,6 +126,7 @@ func CreateMessageCreateHandler(p providers.MessageCreateProvider) func(s *disco
 			}
 
 			s.ChannelMessageSend(m.ChannelID, p.VsLeague(strings.Join(args, " "), 0))
+			return
 		}
 
 		if strings.HasPrefix(m.Content, "!schedule ") {
@@ -130,6 +137,7 @@ func CreateMessageCreateHandler(p providers.MessageCreateProvider) func(s *disco
 			}
 
 			s.ChannelMessageSend(m.ChannelID, p.Schedule(args[0]))
+			return
 		}
 
 		if strings.HasPrefix(m.Content, "!owner ") {
@@ -140,6 +148,7 @@ func CreateMessageCreateHandler(p providers.MessageCreateProvider) func(s *disco
 			}
 
 			s.ChannelMessageSend(m.ChannelID, p.Owner(args))
+			return
 		}
 
 		if strings.HasPrefix(m.Content, "!leaders") {
@@ -155,10 +164,34 @@ func CreateMessageCreateHandler(p providers.MessageCreateProvider) func(s *disco
 				date = args[0]
 			}
 			s.ChannelMessageSend(m.ChannelID, p.Leaders(date))
+			return
+		}
+
+		if strings.HasPrefix(m.Content, "!h2h ") {
+			args := parseArgs("!h2h", m.Content, -1, "")
+			if week, err := strconv.Atoi(args[0]); err == nil {
+				tms := strings.Split(strings.Join(args[1:], " "), "/")
+				if len(tms) != 2 {
+					s.ChannelMessageSend(m.ChannelID, usageError("h2h"))
+					return
+				}
+				s.ChannelMessageSend(m.ChannelID, p.HeadToHead(week, tms[0], tms[1]))
+				return
+			}
+
+			if len(args) == 0 {
+				s.ChannelMessageSend(m.ChannelID, usageError("h2h"))
+				return
+			}
+
+			tms := strings.Split(strings.Join(args, " "), "/")
+			s.ChannelMessageSend(m.ChannelID, p.HeadToHead(0, tms[0], tms[1]))
+			return
 		}
 
 		if m.Content == "!help" {
 			s.ChannelMessageSendEmbed(m.ChannelID, p.Help())
+			return
 		}
 	}
 }

@@ -15,5 +15,6 @@ type MessageCreateProvider interface {
 	Schedule(teamName string) string
 	Owner(playerName []string) string
 	Leaders(date string) string
+	HeadToHead(week int, teamA, teamB string) string
 	Help() *discordgo.MessageEmbed
 }
