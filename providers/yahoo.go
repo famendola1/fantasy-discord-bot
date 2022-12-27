@@ -518,9 +518,14 @@ func (y *Yahoo) HeadToHead(week int, teamA, teamB string) string {
 				l++
 			}
 
-			if stat.StatID == 19 && teamAStat != teamBStat {
+			if stat.StatID == 19 && teamAStat > teamBStat {
 				l++
 				w--
+			}
+
+			if stat.StatID == 19 && teamAStat < teamBStat {
+				l--
+				w++
 			}
 		}
 
