@@ -427,6 +427,11 @@ func (y *Yahoo) Owner(playerNames []string) string {
 
 // Leaders returns the stat category leaders for a given day.
 func (y *Yahoo) Leaders(date string) string {
+	if date == "yesterday" {
+		pst, _ := time.LoadLocation("America/Los_Angeles")
+		date = time.Now().In(pst).AddDate(0, 0, -1).Format("2006-01-02")
+	}
+
 	leaders := make(map[int][]schema.Player)
 	for stat := range statIDs9CAT {
 		players, err := yflib.StatCategoryLeaders(y.client, date, y.gameKey, stat, 5)
@@ -517,7 +522,7 @@ func (y *Yahoo) Help() *discordgo.MessageEmbed {
 	embed.Fields = append(embed.Fields,
 		&discordgo.MessageEmbedField{
 			Name:  "!leaders <date>",
-			Value: "Returns the stat category leaders for a given day. date is formatted as YYYY-MM-DD, if no date is provided then the current date in America/Los_Angeles is used.",
+			Value: "Returns the stat category leaders for a given day. date is formatted as YYYY-MM-DD, if no date is provided then the current date in America/Los_Angeles is used. 'yesterday' can be used as a shortcut for the previous day's leaders.",
 		})
 	return embed
 }
