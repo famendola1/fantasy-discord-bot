@@ -470,8 +470,8 @@ func (y *Yahoo) HeadToHead(week int, teamA, teamB string) string {
 		return formatError(err)
 	}
 
-	var teamAStats schema.TeamStats
-	var teamBStats schema.TeamStats
+	var teamAStats *schema.TeamStats
+	var teamBStats *schema.TeamStats
 
 	for _, tm := range allTeams.League.Teams.Team {
 		if tm.Name == teamA {
@@ -485,10 +485,10 @@ func (y *Yahoo) HeadToHead(week int, teamA, teamB string) string {
 		}
 	}
 
-	if len(teamAStats.Stats.Stat) == 0 {
+	if teamAStats == nil {
 		return formatError(fmt.Errorf("%q team not found", teamA))
 	}
-	if len(teamBStats.Stats.Stat) == 0 {
+	if teamBStats.Stats.Stat == nil {
 		return formatError(fmt.Errorf("%q team not found", teamB))
 	}
 
