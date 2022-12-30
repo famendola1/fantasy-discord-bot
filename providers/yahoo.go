@@ -651,5 +651,10 @@ func (y *Yahoo) Help() *discordgo.MessageEmbed {
 			Name:  "!h2h [week] <team1>/<team2>",
 			Value: "Returns the matchup result between the two given teams for the given week. If no week is provided, the current week is used.",
 		})
+	embed.Fields = append(embed.Fields,
+		&discordgo.MessageEmbedField{
+			Name:  "!ranks [week] <stat>",
+			Value: "Returns the team ranking for the given stat for the given week. If no week is provided, the current week is used.",
+		})
 	return embed
 }
