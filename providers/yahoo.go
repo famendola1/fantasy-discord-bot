@@ -3,6 +3,7 @@ package providers
 import (
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -534,6 +535,55 @@ func (y *Yahoo) HeadToHead(week int, teamA, teamB string) string {
 	out.WriteString(fmt.Sprintf("\nTotal: %d-%d-%d", w, l, t))
 	out.WriteString("```")
 
+	return out.String()
+}
+
+func sortTeamsByStat(tms *schema.Teams, statID int) []schema.Team {
+	teams := tms.Team
+	sort.Slice(teams, func(i, j int) bool {
+		for k, stat := range teams[i].TeamStats.Stats.Stat {
+			if stat.StatID != statID {
+				continue
+			}
+
+			valI, _ := strconv.ParseFloat(stat.Value, 32)
+			valJ, _ := strconv.ParseFloat(teams[j].TeamStats.Stats.Stat[k].Value, 32)
+
+			if valI > valJ {
+				return true
+			}
+			return false
+		}
+		return false
+	})
+	return teams
+}
+
+// Ranks sorts all the teams by the given stat for the given week and returns
+// the sorted list as a string. If no week is given, the current week is used.
+func (y *Yahoo) Ranks(week int, stat string) string {
+	if _, found := yflib.StatNameToID[strings.ToUpper(stat)]; !found {
+		return formatError(fmt.Errorf("stat %q not found", stat))
+	}
+	allTeams, err := yfquery.League().Key(y.leagueKey).Teams().Stats().Week(week).Get(y.client)
+	if err != nil {
+		return formatError(err)
+	}
+
+	sortedTms := sortTeamsByStat(allTeams.League.Teams, yflib.StatNameToID[strings.ToUpper(stat)])
+
+	var out strings.Builder
+	out.WriteString("```\n")
+	for i, tm := range sortedTms {
+		val := ""
+		for _, s := range tm.TeamStats.Stats.Stat {
+			if s.StatID == yflib.StatNameToID[strings.ToUpper(stat)] {
+				val = s.Value
+			}
+		}
+		out.WriteString(fmt.Sprintf("%2d: %s - %s\n", i, tm.Name, val))
+	}
+	out.WriteString("```")
 	return out.String()
 }
 

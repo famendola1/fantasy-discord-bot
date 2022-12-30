@@ -189,6 +189,22 @@ func CreateMessageCreateHandler(p providers.MessageCreateProvider) func(s *disco
 			return
 		}
 
+		if strings.HasPrefix(m.Content, "!ranks ") {
+			args := parseArgs("!ranks", m.Content, -1, "")
+			if week, err := strconv.Atoi(args[0]); err == nil {
+				s.ChannelMessageSend(m.ChannelID, p.Ranks(week, args[1]))
+				return
+			}
+
+			if len(args) == 0 {
+				s.ChannelMessageSend(m.ChannelID, usageError("ranks"))
+				return
+			}
+
+			s.ChannelMessageSend(m.ChannelID, p.Ranks(0, args[0]))
+			return
+		}
+
 		if m.Content == "!help" {
 			s.ChannelMessageSendEmbed(m.ChannelID, p.Help())
 			return
