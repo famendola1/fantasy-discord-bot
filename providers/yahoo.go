@@ -581,7 +581,7 @@ func (y *Yahoo) Ranks(week int, stat string) string {
 				val = s.Value
 			}
 		}
-		out.WriteString(fmt.Sprintf("%2d: %s - %s\n", i, tm.Name, val))
+		out.WriteString(fmt.Sprintf("%2d: %s - %s\n", i+1, tm.Name, val))
 	}
 	out.WriteString("```")
 	return out.String()
