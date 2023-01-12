@@ -372,8 +372,7 @@ func (y *Yahoo) Schedule(teamName string) string {
 			if matchup.IsTied {
 				result = "T"
 				tie++
-			}
-			if matchup.WinnerTeamKey == tm.TeamKey {
+			} else if matchup.WinnerTeamKey == tm.TeamKey {
 				result = "W"
 				win++
 			} else {
