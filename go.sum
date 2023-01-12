@@ -39,6 +39,8 @@ github.com/famendola1/yflib v0.1.14 h1:za0YKuyAV0OLWs4CX+aMzdP4Lwlv1hBXeEGamVKWP
 github.com/famendola1/yflib v0.1.14/go.mod h1:OCj8SaTbpUqL6Lmf5tH/cdUjoSLWtLnvluTMHTTNWo0=
 github.com/famendola1/yflib v0.1.15 h1:lL7L6+7PA5PoiJ5ug4EEZmCGGR7+39F/4citFvrg2dg=
 github.com/famendola1/yflib v0.1.15/go.mod h1:uDGNLrGK3I6s1f5iNUUCuKFi1Pi6JaAZvRPjqB1259U=
+github.com/famendola1/yflib v0.1.16 h1:9z2STuRlQrsWfUHE8nLYmXRHKbs9pS6g0tgFg9nhBLU=
+github.com/famendola1/yflib v0.1.16/go.mod h1:rQAHyjRZ7q5jJDg+cvU3EMgEnk2zww38qavaxlQUbR8=
 github.com/famendola1/yfquery v0.1.1 h1:NdrSYjZRE0mGUGQ88eyKdkK6F616LFOHMqBCYVdyp9M=
 github.com/famendola1/yfquery v0.1.1/go.mod h1:GiRy1fPVif0ERuHY+Zbphpe+KxeDDpIU82zVeR/UHkc=
 github.com/famendola1/yfquery v0.1.3 h1:eeW23f2vkAEEnh968xq5w0b8WySUTBIh3xAaYJYllVM=
@@ -55,6 +57,8 @@ github.com/famendola1/yfquery v0.1.8 h1:hhjUViLJfpzixn/9M2ODmNcQfXvXckO9lFAP68X3
 github.com/famendola1/yfquery v0.1.8/go.mod h1:GiRy1fPVif0ERuHY+Zbphpe+KxeDDpIU82zVeR/UHkc=
 github.com/famendola1/yfquery v0.1.9 h1:HlzvvV2DOlfjtmTysvYgARu3IA7qU3chs6Cuu2jJzB0=
 github.com/famendola1/yfquery v0.1.9/go.mod h1:GiRy1fPVif0ERuHY+Zbphpe+KxeDDpIU82zVeR/UHkc=
+github.com/famendola1/yfquery v0.1.10 h1:7ZaXjVsAOl2K6hzBQNzbFFQY/GdNJGtSykKH8h0w6Is=
+github.com/famendola1/yfquery v0.1.10/go.mod h1:GiRy1fPVif0ERuHY+Zbphpe+KxeDDpIU82zVeR/UHkc=
 github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e h1:1r7pUrabqp18hOBcwBwiTsbnFeTZHV9eER/QT5JVZxY=
 github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
