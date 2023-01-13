@@ -488,7 +488,7 @@ func (y *Yahoo) HeadToHead(week int, teamA, teamB string) string {
 	if teamAStats == nil {
 		return formatError(fmt.Errorf("%q team not found", teamA))
 	}
-	if teamBStats.Stats.Stat == nil {
+	if teamBStats == nil {
 		return formatError(fmt.Errorf("%q team not found", teamB))
 	}
 
